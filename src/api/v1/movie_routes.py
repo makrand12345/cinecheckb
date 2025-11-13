@@ -88,29 +88,39 @@ async def create_movie(movie_data: CreateMovieRequest):
 @router.get("/", response_model=List[MovieOut])
 async def get_all_movies():
     """
-    Simple test endpoint - return mock data
+    Fetch all approved movies from MongoDB.
     """
     try:
-        print("DEBUG: Using mock data")
-        # Return simple mock data
-        return [
-            {
-                "id": "1",
-                "title": "The Shawshank Redemption",
-                "description": "Two imprisoned men bond over a number of years",
-                "genres": ["Drama"],
-                "status": "approved",
-                "featured": False,
-                "cast": [],
-                "created_at": "2024-01-01T00:00:00",
-                "updated_at": "2024-01-01T00:00:00"
-            }
-        ]
+        movies = await Movie.find(Movie.status == "approved").to_list()
+        movie_list = []
+        for m in movies:
+            movie_list.append(
+                MovieOut(
+                    id=str(m.id),
+                    title=m.title,
+                    description=m.description,
+                    genres=m.genres,
+                    release_date=m.release_date,
+                    duration=m.duration,
+                    poster_url=m.poster_url,
+                    trailer_url=m.trailer_url,
+                    director=m.director,
+                    cast=m.cast,
+                    language=m.language,
+                    country=m.country,
+                    age_rating=m.age_rating,
+                    rating=m.rating,
+                    submitted_by=m.submitted_by,
+                    status=m.status,
+                    featured=m.featured,
+                    created_at=m.created_at,
+                    updated_at=m.updated_at
+                )
+            )
+        return movie_list
     except Exception as e:
-        print(f"💥 Movies error: {e}")
-        import traceback
-        print(f"💥 Traceback: {traceback.format_exc()}")
-        raise HTTPException(status_code=500, detail=f"Movies error: {str(e)}")
+        print(f"💥 Movies DB error: {e}")
+        raise HTTPException(status_code=500, detail=f"Movies DB error: {str(e)}")
 
 @router.get("/{movie_id}", response_model=MovieOut)
 async def get_movie_details(movie_id: str):
