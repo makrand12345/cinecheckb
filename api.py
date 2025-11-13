@@ -1,23 +1,19 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from src.api.routes import router as api_router
+from http.server import BaseHTTPRequestHandler
+import json
 
-app = FastAPI(title="CineCheck API")
+class Handler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        response = {"message": "API is working!"}
+        self.wfile.write(json.dumps(response).encode())
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(api_router, prefix="/api/v1")
-
-@app.get("/")
-def root():
-    return {"message": "CineCheck API is running!"}
-
-# Vercel handler
-from mangum import Mangum
-handler = Mangum(app)
+# Vercel needs this handler function
+def handler(request, context):
+    # This is a simplified version for Vercel
+    return {
+        'statusCode': 200,
+        'headers': {'Content-Type': 'application/json'},
+        'body': json.dumps({"message": "API is working on Vercel!"})
+    }
