@@ -5,37 +5,7 @@ This project is a Python-based backend application designed to serve as the back
 ## Project Structure
 
 ```
-python-backend
-├── src
-│   ├── app.py                # Entry point of the application
-│   ├── __init__.py           # Marks the src directory as a Python package
-│   ├── api                   # Contains API-related code
-│   │   ├── __init__.py       # Marks the api directory as a Python package
-│   │   ├── routes.py         # Defines API routes
-│   │   └── v1                # Version 1 of the API
-│   │       ├── __init__.py   # Marks the v1 directory as a Python package
-│   │       ├── users.py      # User-related API endpoints
-│   │       └── items.py      # Item-related API endpoints
-│   ├── models                 # Contains data models
-│   │   └── __init__.py       # Marks the models directory as a Python package
-│   ├── services               # Contains business logic
-│   │   └── __init__.py       # Marks the services directory as a Python package
-│   ├── schemas                # Contains data schemas
-│   │   └── __init__.py       # Marks the schemas directory as a Python package
-│   ├── core                   # Contains core application settings
-│   │   ├── config.py         # Configuration settings
-│   │   └── security.py       # Security-related functions
-│   └── utils                  # Contains utility functions
-│       └── helpers.py        # Utility functions
-├── tests                      # Contains test cases
-│   ├── conftest.py           # Configuration for pytest fixtures
-│   └── test_app.py           # Unit tests for the application
-├── requirements.txt           # Lists project dependencies
-├── pyproject.toml            # Project configuration and dependency management
-├── Dockerfile                 # Instructions for building a Docker image
-├── docker-compose.yml         # Defines services for Docker Compose
-├── .gitignore                 # Specifies files to ignore by Git
-└── README.md                  # Documentation for the project
+
 ```
 
 ## Getting Started
