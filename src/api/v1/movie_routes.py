@@ -91,36 +91,34 @@ async def get_all_movies():
     Fetch all approved movies from MongoDB.
     """
     try:
+        print("DEBUG: Starting database query")
         movies = await Movie.find(Movie.status == "approved").to_list()
-        movie_list = []
-        for m in movies:
-            movie_list.append(
-                MovieOut(
-                    id=str(m.id),
-                    title=m.title,
-                    description=m.description,
-                    genres=m.genres,
-                    release_date=m.release_date,
-                    duration=m.duration,
-                    poster_url=m.poster_url,
-                    trailer_url=m.trailer_url,
-                    director=m.director,
-                    cast=m.cast,
-                    language=m.language,
-                    country=m.country,
-                    age_rating=m.age_rating,
-                    rating=m.rating,
-                    submitted_by=m.submitted_by,
-                    status=m.status,
-                    featured=m.featured,
-                    created_at=m.created_at,
-                    updated_at=m.updated_at
-                )
-            )
-        return movie_list
+        print(f"DEBUG: Found {len(movies)} movies")
+        # ... rest of function
     except Exception as e:
-        print(f"💥 Movies DB error: {e}")
+        print(f"💥 REAL Movies DB error: {e}")
+        import traceback
+        print(f"💥 FULL TRACEBACK: {traceback.format_exc()}")
         raise HTTPException(status_code=500, detail=f"Movies DB error: {str(e)}")
+
+@router.post("/test-movie")
+async def create_test_movie():
+    """Create a test movie to verify the database connection"""
+    try:
+        test_movie = Movie(
+            title="The Shawshank Redemption",
+            description="Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+            genres=["Drama"],
+            release_date="1994-09-23",
+            duration=142,
+            director="Frank Darabont",
+            cast=[{"name": "Tim Robbins", "role": "Andy Dufresne"}, {"name": "Morgan Freeman", "role": "Ellis Redding"}],
+            status="approved"
+        )
+        await test_movie.insert()
+        return {"message": "Test movie created successfully", "movie_id": str(test_movie.id)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to create test movie: {str(e)}")
 
 @router.get("/{movie_id}", response_model=MovieOut)
 async def get_movie_details(movie_id: str):
