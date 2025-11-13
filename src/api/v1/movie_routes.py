@@ -1,11 +1,11 @@
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
-from src.models.movie import Movie
-from src.schemas.movie import MovieOut
+from models.movie import Movie
+from schemas.movie import MovieOut
 from pydantic import BaseModel
 from typing import List, Optional
 from beanie import PydanticObjectId
-from src.core.security import admin_required
+from core.security import admin_required
 
 
 router = APIRouter(prefix="/movies", tags=["Movies"])

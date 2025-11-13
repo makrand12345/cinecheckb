@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from src.api.v1 import movie_routes, auth_routes, user_routes, admin_routes
+from api.v1 import movie_routes, auth_routes, user_routes, admin_routes
 
 router = APIRouter()
 

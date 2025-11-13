@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
-from src.services.user_service import authenticate_user, create_user
+from services.user_service import authenticate_user, create_user
 
 router = APIRouter(prefix="/auth", tags=["Auth"])  # CHANGE THIS
 

@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, EmailStr
 from typing import Optional, Literal
 from datetime import datetime
-from src.services.user_service import get_user
+from services.user_service import get_user
 
 router = APIRouter(prefix="/users", tags=["Users"])  # CHANGE THIS
 

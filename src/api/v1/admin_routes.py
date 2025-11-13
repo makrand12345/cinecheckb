@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
-from src.models.movie import Movie
-from src.schemas.movie import MovieOut
+from models.movie import Movie
+from schemas.movie import MovieOut
 from beanie import PydanticObjectId
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
