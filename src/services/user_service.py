@@ -1,5 +1,5 @@
 from typing import Optional, Dict, Any
-from src.models.user import User
+from models.user import User
 
 async def create_user(user_data: Dict[str, Any]) -> User:
     # Check if user already exists in MongoDB
