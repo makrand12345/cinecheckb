@@ -1,19 +1,23 @@
-FROM python:3.9-slim
+# Use Python 3.11 with proper OpenSSL support
+FROM python:3.11-slim
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements file
-COPY requirements.txt .
+# Install system dependencies for SSL and certs
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gcc libssl-dev ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install the dependencies
+# Copy requirements and install
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy the application code
+# Copy app source code
 COPY src/ ./src/
 
-# Expose the port the app runs on
+# Expose port
 EXPOSE 8000
 
-# Command to run the application
+# Run the app
 CMD ["python", "src/app.py"]

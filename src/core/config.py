@@ -3,7 +3,7 @@ from typing import List
 import os
 
 class Settings(BaseSettings):
-    MONGODB_URI: str = os.getenv("MONGODB_URI", "mongodb://localhost:27017")
+    MONGODB_URI: str = os.getenv("MONGODB_URI")
     DB_NAME: str = os.getenv("DB_NAME", "cinecheck")
     CORS_ORIGINS: List[str] = os.getenv("CORS_ORIGINS", "http://localhost:4200").split(",")
     JWT_SECRET: str = os.getenv("JWT_SECRET", "your-secret-key")
