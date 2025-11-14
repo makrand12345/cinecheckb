@@ -9,7 +9,7 @@ async def init_db():
     client = AsyncIOMotorClient(
         settings.MONGODB_URI,
         tls=True,
-        tlsCAFile=certifi.where()  # proper SSL certificates
+        tlsCAFile=certifi.where()  # ensure proper SSL verification
     )
     db = client[settings.DB_NAME]
     await init_beanie(database=db, document_models=[Movie, User])
