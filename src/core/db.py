@@ -6,12 +6,21 @@ from core.config import settings
 import ssl
 
 async def init_db():
-    # MongoDB Atlas requires SSL
+    # Create SSL context (Render + Atlas fix)
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
+
     client = AsyncIOMotorClient(
         settings.MONGODB_URI,
         tls=True,
-        tlsAllowInvalidCertificates=True
+        tlsAllowInvalidCertificates=True,
+        ssl=ssl_ctx
     )
 
     db = client[settings.DB_NAME]
-    await init_beanie(database=db, document_models=[Movie, User])
+
+    await init_beanie(
+        database=db,
+        document_models=[Movie, User]
+    )
