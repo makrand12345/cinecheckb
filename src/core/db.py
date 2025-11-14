@@ -8,8 +8,7 @@ async def init_db():
     client = AsyncIOMotorClient(
         settings.MONGODB_URI,
         tls=True,
-        tlsAllowInvalidCertificates=True,
-        tlsInsecure=True        # <-- FIX FOR RENDER
+        tlsInsecure=True   # <-- ONLY THIS
     )
 
     db = client[settings.DB_NAME]
