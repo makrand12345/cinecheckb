@@ -63,11 +63,25 @@ Make sure to set these environment variables in your Render dashboard:
 
 - **Build fails**: Check that all dependencies in `requirements.txt` are correct
 - **App crashes**: Check the logs in Render dashboard for error messages
-- **Database connection fails / SSL handshake errors**: 
-  - Verify your `MONGODB_URI` is correct and uses the format: `mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority`
-  - Ensure MongoDB Atlas Network Access allows connections from anywhere (0.0.0.0/0) or add Render's IP ranges
-  - Check that your MongoDB Atlas user has the correct permissions
-  - The connection string should NOT include `ssl=true` or `tls=true` parameters (they're automatic for `mongodb+srv://`)
+- **Database connection fails / SSL handshake errors** (MOST COMMON ISSUE): 
+  
+  **⚠️ IMPORTANT: MongoDB Atlas Network Access Configuration**
+  
+  The `TLSV1_ALERT_INTERNAL_ERROR` SSL handshake error is almost always caused by MongoDB Atlas Network Access restrictions. To fix:
+  
+  1. **Go to MongoDB Atlas Dashboard** → **Network Access** (left sidebar)
+  2. **Click "Add IP Address"**
+  3. **Add `0.0.0.0/0`** (allows connections from anywhere) OR add Render's specific IP ranges
+  4. **Click "Confirm"** - This may take a few minutes to propagate
+  5. **Verify your connection string**:
+     - Format: `mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority`
+     - Ensure username/password are URL-encoded if they contain special characters (`@`, `:`, `/`, etc.)
+     - Do NOT include `ssl=true` or `tls=true` in the connection string (automatic for `mongodb+srv://`)
+  6. **Check database user permissions** in MongoDB Atlas → Database Access
+  7. **Wait 2-3 minutes** after changing Network Access settings, then restart your Render service
+  
+  **Note**: The app will continue to run with mock data if the database connection fails, but you'll see error messages in the logs.
+
 - **CORS errors**: Make sure your frontend URL is included in `CORS_ORIGINS`
 
 ## Notes
