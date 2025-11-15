@@ -8,12 +8,8 @@ import os
 app = FastAPI(title="CineCheck API")
 
 # Enable CORS for frontend
-# Get CORS origins from environment or settings
-cors_origins_env = os.getenv("CORS_ORIGINS")
-if cors_origins_env:
-    cors_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
-else:
-    cors_origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else [settings.CORS_ORIGINS]
+# Get CORS origins from settings (handles comma-separated string from env)
+cors_origins = settings.get_cors_origins_list()
 
 app.add_middleware(
     CORSMiddleware,
@@ -43,6 +39,5 @@ def root():
 # Run on Render
 if __name__ == "__main__":
     import uvicorn
-    import os
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
