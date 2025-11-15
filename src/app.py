@@ -2,13 +2,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from api.routes import router as api_router
 from core.db import init_db
+from core.config import settings
+import os
 
 app = FastAPI(title="CineCheck API")
 
 # Enable CORS for frontend
+# Get CORS origins from environment or settings
+cors_origins_env = os.getenv("CORS_ORIGINS")
+if cors_origins_env:
+    cors_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+else:
+    cors_origins = settings.CORS_ORIGINS if isinstance(settings.CORS_ORIGINS, list) else [settings.CORS_ORIGINS]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://cinecheckf.vercel.app"],
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
