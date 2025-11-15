@@ -8,23 +8,18 @@ from models.user import User
 async def init_db():
     """
     Initialize MongoDB connection with Beanie.
-    Uses certifi for SSL certificate validation with MongoDB Atlas.
+    Handles SSL/TLS for MongoDB Atlas connections.
     """
-    # MongoDB Atlas connection handling
-    # mongodb+srv:// connections automatically use SSL/TLS
-    # We provide certifi CA certificates for proper validation
     mongodb_uri = settings.MONGODB_URI
     
-    # For mongodb+srv://, SSL is automatic, just need CA certs
-    # For mongodb://, we may need to explicitly enable TLS
+    # For mongodb+srv:// connections, MongoDB Atlas handles SSL/TLS automatically
+    # Don't specify tlsCAFile as it can cause SSL handshake conflicts
+    # The system's default CA certificates will be used
     if mongodb_uri.startswith("mongodb+srv://"):
-        # SRV connections automatically use TLS, just provide CA certs
-        client = AsyncIOMotorClient(
-            mongodb_uri,
-            tlsCAFile=certifi.where()
-        )
+        # SRV connections: SSL/TLS is automatic, use default system certs
+        client = AsyncIOMotorClient(mongodb_uri)
     else:
-        # Standard connection - enable TLS explicitly
+        # Standard mongodb:// connections: explicitly enable TLS with certifi
         client = AsyncIOMotorClient(
             mongodb_uri,
             tls=True,
@@ -36,6 +31,8 @@ async def init_db():
         await client.admin.command('ping')
         db = client[settings.DB_NAME]
         await init_beanie(database=db, document_models=[Movie, User])
+        print("✅ MongoDB connected and Beanie initialized")
     except Exception as e:
         print(f"❌ MongoDB connection error: {e}")
+        print(f"   Connection URI format: {'mongodb+srv://' if mongodb_uri.startswith('mongodb+srv://') else 'mongodb://'}")
         raise
