@@ -63,7 +63,11 @@ Make sure to set these environment variables in your Render dashboard:
 
 - **Build fails**: Check that all dependencies in `requirements.txt` are correct
 - **App crashes**: Check the logs in Render dashboard for error messages
-- **Database connection fails**: Verify your `MONGODB_URI` is correct and MongoDB Atlas allows connections from Render's IPs (0.0.0.0/0)
+- **Database connection fails / SSL handshake errors**: 
+  - Verify your `MONGODB_URI` is correct and uses the format: `mongodb+srv://username:password@cluster.mongodb.net/?retryWrites=true&w=majority`
+  - Ensure MongoDB Atlas Network Access allows connections from anywhere (0.0.0.0/0) or add Render's IP ranges
+  - Check that your MongoDB Atlas user has the correct permissions
+  - The connection string should NOT include `ssl=true` or `tls=true` parameters (they're automatic for `mongodb+srv://`)
 - **CORS errors**: Make sure your frontend URL is included in `CORS_ORIGINS`
 
 ## Notes
