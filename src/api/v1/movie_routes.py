@@ -86,14 +86,104 @@ async def create_movie(movie_data: CreateMovieRequest):
         raise HTTPException(status_code=400, detail=f"Failed to create movie: {str(e)}")
 
 @router.get("/", response_model=List[MovieOut])
-async def get_all_movies():
+async def get_all_movies(
+    search: Optional[str] = None,
+    genre: Optional[str] = None,
+    year: Optional[int] = None,
+    min_rating: Optional[float] = None,
+    sort_by: Optional[str] = "created_at",  # created_at, rating, title
+    featured: Optional[bool] = None
+):
     """
-    Fetch all approved movies from MongoDB, fallback to mock data if DB fails.
+    Fetch all approved movies with optional filtering and sorting
     """
     try:
-        print("DEBUG: Trying database query")
-        movies = await Movie.find(Movie.status == "approved").to_list()
-        print(f"DEBUG: Found {len(movies)} movies from database")
+        # Build query
+        query = {"status": "approved"}
+        if featured is not None:
+            query["featured"] = featured
+        
+        movies_query = Movie.find(query)
+        
+        # Apply filters
+        movies = await movies_query.to_list()
+        
+        # Filter in memory (can be optimized with MongoDB aggregation)
+        filtered_movies = []
+        for m in movies:
+            # Search filter
+            if search:
+                search_lower = search.lower()
+                if (search_lower not in m.title.lower() and 
+                    search_lower not in m.description.lower() and
+                    search_lower not in (m.director or "").lower()):
+                    continue
+            
+            # Genre filter
+            if genre and genre not in m.genres:
+                continue
+            
+            # Year filter
+            if year and m.release_date:
+                try:
+                    movie_year = int(m.release_date.split("-")[0])
+                    if movie_year != year:
+                        continue
+                except:
+                    pass
+            
+            # Rating filter
+            if min_rating is not None:
+                if m.rating is None or m.rating < min_rating:
+                    continue
+            
+            filtered_movies.append(m)
+        
+        # Sort
+        if sort_by == "rating":
+            filtered_movies.sort(key=lambda x: x.rating if x.rating else 0, reverse=True)
+        elif sort_by == "title":
+            filtered_movies.sort(key=lambda x: x.title.lower())
+        else:  # created_at (default)
+            filtered_movies.sort(key=lambda x: x.created_at, reverse=True)
+        
+        # Convert to MovieOut
+        movie_list = []
+        for m in filtered_movies:
+            movie_list.append(MovieOut(
+                id=str(m.id),
+                title=m.title,
+                description=m.description,
+                genres=m.genres,
+                release_date=m.release_date,
+                duration=m.duration,
+                poster_url=m.poster_url,
+                trailer_url=m.trailer_url,
+                director=m.director,
+                cast=m.cast,
+                language=m.language,
+                country=m.country,
+                age_rating=m.age_rating,
+                rating=m.rating,
+                submitted_by=m.submitted_by,
+                status=m.status,
+                featured=m.featured,
+                created_at=m.created_at,
+                updated_at=m.updated_at
+            ))
+        return movie_list
+        
+    except Exception as e:
+        print(f"💥 Get movies error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch movies: {str(e)}")
+
+@router.get("/featured", response_model=List[MovieOut])
+async def get_featured_movies():
+    """
+    Get all featured movies
+    """
+    try:
+        movies = await Movie.find(Movie.status == "approved", Movie.featured == True).sort(-Movie.rating).to_list()
         
         movie_list = []
         for m in movies:
@@ -119,42 +209,9 @@ async def get_all_movies():
                 updated_at=m.updated_at
             ))
         return movie_list
-        
     except Exception as e:
-        print(f"💥 Database failed, using mock data: {e}")
-        # Return mock data as fallback
-        return [
-            {
-                "id": "1",
-                "title": "The Shawshank Redemption",
-                "description": "Two imprisoned men bond over a number of years",
-                "genres": ["Drama"],
-                "status": "approved",
-                "featured": False,
-                "cast": [],
-                "created_at": "2024-01-01T00:00:00",
-                "updated_at": "2024-01-01T00:00:00"
-            }
-        ]
-@router.post("/test-movie")
-async def create_test_movie():
-    """Create a test movie to verify the database connection"""
-    try:
-        test_movie = Movie(
-            title="The Shawshank Redemption",
-            description="Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
-            genres=["Drama"],
-            release_date="1994-09-23",
-            duration=142,
-            director="Frank Darabont",
-            cast=[{"name": "Tim Robbins", "role": "Andy Dufresne"}, {"name": "Morgan Freeman", "role": "Ellis Redding"}],
-            status="approved"
-        )
-        await test_movie.insert()
-        return {"message": "Test movie created successfully", "movie_id": str(test_movie.id)}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to create test movie: {str(e)}")
-
+        print(f"💥 Get featured movies error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch featured movies: {str(e)}")
 @router.get("/{movie_id}", response_model=MovieOut)
 async def get_movie_details(movie_id: str):
     """
@@ -275,5 +332,21 @@ async def reject_movie(movie_id: str):
     except Exception as e:
         print(f"💥 Reject movie error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to reject movie: {str(e)}")
+
+@router.post("/admin/{movie_id}/feature")
+async def toggle_featured(movie_id: str):
+    """Toggle featured status of a movie"""
+    try:
+        movie = await Movie.get(PydanticObjectId(movie_id))
+        if not movie:
+            raise HTTPException(status_code=404, detail="Movie not found")
+        
+        movie.featured = not movie.featured
+        await movie.save()
+        
+        return {"message": f"Movie {'featured' if movie.featured else 'unfeatured'} successfully", "featured": movie.featured}
+    except Exception as e:
+        print(f"💥 Toggle featured error: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to toggle featured: {str(e)}")
     
-    
+     

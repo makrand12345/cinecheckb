@@ -4,6 +4,7 @@ from beanie import init_beanie
 from core.config import settings
 from models.movie import Movie
 from models.user import User
+from models.review import Review
 
 async def init_db():
     """
@@ -47,7 +48,7 @@ async def init_db():
         print("   ✅ Connection successful!")
         
         db = client[settings.DB_NAME]
-        await init_beanie(database=db, document_models=[Movie, User])
+        await init_beanie(database=db, document_models=[Movie, User, Review])
         print("✅ MongoDB connected and Beanie initialized")
         
     except Exception as e:
