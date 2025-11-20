@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 from beanie import PydanticObjectId
 from core.security import admin_required
+from datetime import datetime, timezone
 
 
 router = APIRouter(prefix="/movies", tags=["Movies"])
@@ -24,6 +25,19 @@ class CreateMovieRequest(BaseModel):
     country: Optional[str] = None
     age_rating: Optional[str] = None
     submitted_by: Optional[str] = None
+
+def _to_epoch(dt: datetime) -> float:
+    """
+    Convert datetime to a UTC epoch float. Handles both naive and tz-aware datetimes.
+    """
+    if dt is None:
+        return 0.0
+    if dt.tzinfo is None:
+        # assume naive datetimes are UTC (adjust if your app uses local time)
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt.timestamp()
 
 @router.post("/test-movie")
 async def create_test_movie():
@@ -145,7 +159,7 @@ async def get_all_movies(
         elif sort_by == "title":
             filtered_movies.sort(key=lambda x: x.title.lower())
         else:  # created_at (default)
-            filtered_movies.sort(key=lambda x: x.created_at, reverse=True)
+            filtered_movies.sort(key=lambda x: _to_epoch(getattr(x, "created_at", None)), reverse=True)
         
         # Convert to MovieOut
         movie_list = []
@@ -348,5 +362,4 @@ async def toggle_featured(movie_id: str):
     except Exception as e:
         print(f"💥 Toggle featured error: {e}")
         raise HTTPException(status_code=500, detail=f"Failed to toggle featured: {str(e)}")
-    
-     
+
