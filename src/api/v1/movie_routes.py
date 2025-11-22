@@ -39,6 +39,35 @@ def _to_epoch(dt: datetime) -> float:
         dt = dt.astimezone(timezone.utc)
     return dt.timestamp()
 
+def _parse_datetime(val):
+    """
+    Return a timezone-aware datetime (UTC) from datetime or ISO string.
+    Returns None if it cannot be parsed.
+    """
+    if val is None:
+        return None
+    if isinstance(val, datetime):
+        dt = val
+    elif isinstance(val, str):
+        try:
+            # try ISO format first
+            dt = datetime.fromisoformat(val)
+        except Exception:
+            # fallback: attempt basic YYYY-MM-DD parse
+            try:
+                dt = datetime.strptime(val.split("T")[0], "%Y-%m-%d")
+            except Exception:
+                return None
+    else:
+        return None
+
+    # make timezone-aware in UTC
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    else:
+        dt = dt.astimezone(timezone.utc)
+    return dt
+
 @router.post("/test-movie")
 async def create_test_movie():
     """Create a test movie to verify the database connection"""
@@ -152,6 +181,15 @@ async def get_all_movies(
                     continue
             
             filtered_movies.append(m)
+        
+        # Normalize datetimes to avoid naive/aware comparison errors
+        for m in filtered_movies:
+            try:
+                m.created_at = _parse_datetime(getattr(m, "created_at", None))
+                m.updated_at = _parse_datetime(getattr(m, "updated_at", None))
+            except Exception:
+                # keep original if normalization fails
+                pass
         
         # Sort
         if sort_by == "rating":
